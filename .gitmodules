@@ -1,0 +1,6 @@
+[submodule "scapy"]
+	path = scapy
+	url = https://github.com/secdev/scapy
+[submodule "exabgp"]
+	path = exabgp
+	url = https://github.com/Exa-Networks/exabgp
