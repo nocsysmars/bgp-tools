@@ -1,0 +1,16 @@
+process announce-routes {
+    run /usr/bin/python3 {#PWD#}/test.py;
+    encoder json;
+}
+
+neighbor 101.101.101.103 {                 # Remote neighbor to peer with
+    router-id 101.101.101.101;              # Our local router-id
+    local-address 101.101.101.101;          # Our local update-source
+    local-as 65001;                    # Our local AS
+    peer-as 65000;                     # Peer's AS
+
+    api {
+        processes [announce-routes];
+    }
+}
+

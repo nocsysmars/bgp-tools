@@ -1,0 +1,61 @@
+From 550d87c5b87107e9ab8229d57ca369bdd2798ff3 Mon Sep 17 00:00:00 2001
+From: squid_ro <squid_ro@accton.com>
+Date: Fri, 4 Nov 2022 02:25:26 +0000
+Subject: [PATCH] Modify protocol.py to replay bgp pcap file.
+
+---
+ src/exabgp/reactor/protocol.py | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/src/exabgp/reactor/protocol.py b/src/exabgp/reactor/protocol.py
+index 73a623e..997cc1e 100644
+--- a/src/exabgp/reactor/protocol.py
++++ b/src/exabgp/reactor/protocol.py
+@@ -44,6 +44,10 @@ from exabgp.reactor.api.processes import ProcessError
+ 
+ from exabgp.logger import log
+ 
++from scapy.all import *
++from scapy.contrib.bgp import *
++import pdb
++
+ # This is the number of chuncked message we are willing to buffer, not the number of routes
+ MAX_BACKLOG = 15000
+ 
+@@ -73,6 +77,14 @@ class Protocol(object):
+ 
+         self.log_routes = peer.neighbor['adj-rib-in'] or getenv().log.routes
+ 
++        #pdb.set_trace()
++        cap_fname = os.environ.get("PCAP")
++        if cap_fname:
++            self.bgppkts = rdpcap(cap_fname)
++        else:
++            self.bgppkts = None
++
++
+     def fd(self):
+         if self.connection is None:
+             return -1
+@@ -349,6 +361,18 @@ class Protocol(object):
+         yield notification
+ 
+     def new_update(self, include_withdraw):
++        #pdb.set_trace()
++        if self.bgppkts:
++            for pkt in self.bgppkts:
++                if "BGPUpdate" in pkt:
++#                pdb.set_trace()
++#                for layer in pkt.layers():
++#                    if layer._name == "UPDATE":
++                    for boolean in self.send(bytes(pkt["BGPHeader"])):
++                        yield _NOP
++            yield _UPDATE
++
++
+         updates = self.neighbor.rib.outgoing.updates(self.neighbor['group-updates'])
+         number = 0
+         for update in updates:
+-- 
+2.7.4
+

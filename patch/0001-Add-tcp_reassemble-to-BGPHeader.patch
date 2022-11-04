@@ -1,0 +1,70 @@
+From 0fbaa4341aeac40d4fce0a516a34aa77bc7f000f Mon Sep 17 00:00:00 2001
+From: squid_ro <squid_ro@accton.com>
+Date: Fri, 4 Nov 2022 01:16:08 +0000
+Subject: [PATCH] Add tcp_reassemble to BGPHeader.
+
+---
+ scapy/contrib/bgp.py | 33 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
+
+diff --git a/scapy/contrib/bgp.py b/scapy/contrib/bgp.py
+index 4ba4dc6..7595000 100644
+--- a/scapy/contrib/bgp.py
++++ b/scapy/contrib/bgp.py
+@@ -29,7 +29,7 @@ from scapy.config import conf, ConfClass
+ from scapy.compat import orb, chb
+ from scapy.error import log_runtime
+ import scapy.libs.six as six
+-
++import pdb
+ 
+ #
+ # Module configuration
+@@ -474,6 +474,28 @@ class BGPHeader(Packet):
+     def guess_payload_class(self, payload):
+         return _get_cls(_bgp_cls_by_type.get(self.type, conf.raw_layer), conf.raw_layer)  # noqa: E501
+ 
++    @classmethod
++    def tcp_reassemble(cls, data, metadata, session):
++
++        beg = 16
++        end = 18
++        total = len(data)
++        #pdb.set_trace()
++        #length = struct.unpack("!H", data[beg:end])[0]
++
++        #print("total-{}".format(total))
++        while total >= 19 :
++            length = struct.unpack("!H", data[beg:end])[0]
++            if length == total:
++                return BGP(data)
++            else:
++#                pdb.set_trace()
++                if total > length:
++                    total = total - length
++                    beg = beg + length
++                    end = end + length
++                else:
++                    break
+ 
+ def _bgp_dispatcher(payload):
+     """
+@@ -528,6 +550,15 @@ class BGP(Packet):
+             cls = BGPHeader
+         return cls
+ 
++#    @classmethod
++#    def tcp_reassemble(cls, data, metadata, session):
++        #pdb.set_trace()
++#        length = struct.unpack("!H", data[16:18])[0]
++#        if length == len(data):
++#            return BGP(data)
++        #else:
++        #    pdb.set_trace()
++#        pass
+ 
+ #
+ # KEEPALIVE
+-- 
+2.7.4
+
