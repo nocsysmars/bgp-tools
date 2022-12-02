@@ -1,3 +1,5 @@
+This tool is used to simulate BGP-LS connection with ONOS to test BGP-LS app. It will read pcap file to inject to ONOS.
+
 # Quick steps for bgp-tools
 
 ## 0. Download submodules and apply patches
